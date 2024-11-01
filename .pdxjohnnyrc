@@ -339,3 +339,32 @@ ralice() {
   # export GITHUB_USER=$(gh auth status | grep 'Logged in to github.com account ' | awk '{print $7}')
   ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no -R /tmp/${GITHUB_USER}.sock:$(echo $TMUX | sed -e 's/,.*//g') -R /tmp/${GITHUB_USER}-input.sock:/tmp/${GITHUB_USER}-input.sock ${GITHUB_USER}@alice.chadig.com $@
 }
+
+fork_user_repos() {   if [ -z "$1" ]; then     echo "Usage: $0 <github-username>";     exit 1;   fi;    USERNAME="$1";   END_CURSOR=null;   HAS_NEXT_PAGE=true;    echo "Fetching and forking repositories for user: $USERNAME";    while [ "$HAS_NEXT_PAGE" == "true" ]; do
+  
+    GRAPHQL_QUERY=$(cat << EOF
+    {
+      user(login: "$USERNAME") {
+        repositories(first: 100, after: $END_CURSOR, ownerAffiliations: OWNER) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            name
+            isFork
+          }
+        }
+      }
+    }
+EOF
+
+
+
+
+
+);      REPOS_RESPONSE=$(gh api graphql -f query="$GRAPHQL_QUERY" --jq '.data.user.repositories');      HAS_NEXT_PAGE=$(echo "$REPOS_RESPONSE" | jq -r '.pageInfo.hasNextPage');     END_CURSOR=$(echo "$REPOS_RESPONSE" | jq -r '.pageInfo.endCursor');      REPOS=$(echo "$REPOS_RESPONSE" | jq -r '.nodes[] | .name');      set -x;     for REPO in $REPOS; do       echo "Forking repository: $REPO";       (cd "$HOME/Documents/$USERNAME/$REPO" && git fetch --all && git pull) &     done;   done;    echo "All non-fork repositories have been forked!"; set +x; }
+
+c2fa() {
+  2fa | grep "${1}" | awk '{print $1}' | sed -e 's/ //g' | xclip -selection clipboard
+}
