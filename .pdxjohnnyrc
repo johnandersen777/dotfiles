@@ -310,6 +310,44 @@ fi
 export NO_PROXY="$(OIFS="$IFS"; IFS=$'\n'; array=($(ip a | grep inet\ | awk '{print $2}' | sed -e 's/\/.*//g' | grep -v ::1 | sort | uniq)); IFS="$OIFS"; array+=(${NO_PROXY}); (export IFS=','; echo "${array[*]}"))"
 export no_proxy="$(OIFS="$IFS"; IFS=$'\n'; array=($(ip a | grep inet\ | awk '{print $2}' | sed -e 's/\/.*//g' | grep -v ::1 |sort | uniq)); IFS="$OIFS"; array+=(${no_proxy}); (export IFS=','; echo "${array[*]}"))"
 
+find_listening_ports() {
+  # Check if PID is provided
+  if [ -z "$1" ]; then
+    echo "Usage: find_listening_ports <PID>" 1>&2
+    return 1
+  fi
+
+  PID=$1
+
+  # Check if the process with the given PID exists
+  if ! ps -p $PID > /dev/null 2>&1; then
+    echo "Process with PID $PID does not exist." 1>&2
+    return 1
+  fi
+
+  # Find listening TCP ports for the given PID using ss
+  LISTENING_PORTS=$(ss -ltnp 2>/dev/null | grep "pid=$PID")
+
+  if [ -z "$LISTENING_PORTS" ]; then
+    echo "Process with PID $PID not listening on any ports." 1>&2
+    return 1
+  fi
+
+  echo "$LISTENING_PORTS" | awk '{print $4}' | awk -F':' '{print $NF}'
+}
+
+await_listening_ports() {
+  # Check if PID is provided
+  if [ -z "$1" ]; then
+    echo "Usage: find_listening_ports <PID>" 1>&2
+    return 1
+  fi
+
+  PID=$1
+
+  until find_listening_ports "${PID}"; do sleep 0.01; done
+}
+
 pip_latest() {   latest=$(pip install $1== 2>&1 | grep ERROR:\ Could\ not | awk '{print $NF}' | sed -e 's/)//');   echo "$1==$latest"; }
 
 fork() {

@@ -3,6 +3,8 @@ set encoding=utf-8
 syntax on
 set bg=dark
 
+let g:markdown_fenced_languages = ['html', 'python', 'ruby', 'vim']
+
 " setlocal spell spelllang=en_us
 
 " autocmd BufWritePre *.py execute ':Black'
