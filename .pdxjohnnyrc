@@ -297,6 +297,7 @@ alias b='exec bash'
 if [ -f "${HOME}/.local/.venv/bin/activate" ]; then
   . "${HOME}/.local/.venv/bin/activate"
 fi
+PS1="$ "
 
 # Source all the files that need to be sourced
 for file in $(ls -a ${HOME} | grep '_source'); do

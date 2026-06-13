@@ -1,7 +1,19 @@
+set nocompatible              " be iMproved, required
+filetype off                  " required
+
+set autoread
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
 execute pathogen#infect()
 set encoding=utf-8
 syntax on
 set bg=dark
+
+Bundle 'isobit/vim-caddyfile'
+Bundle 'evanleck/vim-svelte'
 
 let g:markdown_fenced_languages = ['html', 'python', 'ruby', 'vim']
 
